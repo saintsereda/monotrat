@@ -86,7 +86,6 @@ export function createAppStore(deps: AppDeps) {
   let client: MonoClient | null = null
   let scheduler: SyncScheduler | null = null
   let syncing = false
-  let lastRequestAt: number | undefined
 
   async function getStore(): Promise<Store> {
     if (!store) {
@@ -139,14 +138,12 @@ export function createAppStore(deps: AppDeps) {
           client: activeClient,
           store: s,
           accounts: state.accounts,
-          lastRequestAt,
           now: deps.now,
           onProgress: (progress) => set({ progress }),
           onData: () => void reload(),
         })
         const result = await scheduler.run()
         scheduler = null
-        lastRequestAt = deps.now()
         if (result.state === 'stopped') return
         if (result.state === 'unauthorized') handleUnauthorized()
         else await reload()
@@ -190,8 +187,8 @@ export function createAppStore(deps: AppDeps) {
       set({ phase: 'connecting', error: null })
       const nextClient = deps.createClient(trimmed)
       try {
+        // client-info and statement have separate limits per the docs, so the first statement goes right away
         const info = await nextClient.getClientInfo()
-        lastRequestAt = deps.now()
         const s = await getStore()
         const previousClient = await s.getMeta<string>('clientId')
         if (previousClient && previousClient !== info.clientId) await s.clear()

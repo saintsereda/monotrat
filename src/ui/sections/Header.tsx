@@ -25,7 +25,8 @@ export function SyncStatus({ state }: { state: AppState }) {
   const running = progress.state === 'waiting' || progress.state === 'fetching' || progress.state === 'rateLimited'
   const secs = progress.nextRequestAt ? Math.max(0, Math.ceil((progress.nextRequestAt - now) / 1000)) : 0
   const remaining = Math.max(progress.total - progress.done, 0)
-  const minutes = Math.max(1, Math.ceil((remaining * REQUEST_INTERVAL_MS) / 60_000))
+  const parallel = progress.limitMode === 'perAccount' ? Math.max(1, state.accounts.length) : 1
+  const minutes = Math.max(1, Math.ceil((remaining * REQUEST_INTERVAL_MS) / 60_000 / parallel))
 
   let dot = 'bg-green'
   let text = 'Усе актуально'

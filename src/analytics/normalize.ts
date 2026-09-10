@@ -51,6 +51,34 @@ const OWN_TRANSFER_RE = /^(з|із|на)\s+(чорн|біл|залізн|пла�
 const CASHBACK_RE = /кешбек|cashback/i
 const JAR_WORD_RE = /банк/i
 const PAIR_WINDOW_SEC = 180
+const REFUND_WINDOW_SEC = 90 * 86400
+
+/**
+ * A refund (released hold, returned goods) cancels the latest earlier purchase on the same account
+ * at the same merchant — or with the same MCC and the exact same amount. Full refunds turn both into
+ * `reversed`; partial ones reduce the purchase. Refunds without a match stay `refund`.
+ */
+function offsetRefunds(list: NormalizedTx[]): void {
+  for (let i = 0; i < list.length; i++) {
+    const refund = list[i]
+    if (refund.kind !== 'refund') continue
+    for (let j = i - 1; j >= 0; j--) {
+      const buy = list[j]
+      if (refund.time - buy.time > REFUND_WINDOW_SEC) break
+      if (buy.kind !== 'expense' || buy.accountId !== refund.accountId) continue
+      const sameMerchant = buy.merchantKey === refund.merchantKey
+      const sameCharge = buy.mcc === refund.mcc && buy.amountUah + refund.amountUah === 0
+      if ((!sameMerchant && !sameCharge) || refund.amountUah > -buy.amountUah) continue
+      buy.amountUah += refund.amountUah
+      refund.kind = 'reversed'
+      if (buy.amountUah === 0) {
+        buy.kind = 'reversed'
+        buy.cashbackUah = 0
+      }
+      break
+    }
+  }
+}
 
 interface Draft {
   item: StoredTx
@@ -102,7 +130,7 @@ export function normalizeAll(items: StoredTx[], ctx: NormalizeContext): Normaliz
 
   pairInternal(drafts)
 
-  return drafts.map((d): NormalizedTx => {
+  const out = drafts.map((d): NormalizedTx => {
     const { item } = d
     let kind = d.kind
     let counterKind = d.counterKind
@@ -144,4 +172,6 @@ export function normalizeAll(items: StoredTx[], ctx: NormalizeContext): Normaliz
       counterKind,
     }
   })
+  offsetRefunds(out)
+  return out
 }

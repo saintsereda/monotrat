@@ -41,7 +41,7 @@ describe('app store', () => {
   })
   afterEach(() => vi.useRealTimers())
 
-  it('connects, stores the token for the session and starts syncing', async () => {
+  it('connects, stores the token for the session and fetches the first statement right away', async () => {
     const { app, getStatement } = setup()
     await app.actions.connect('  secret  ', false)
     await vi.advanceTimersByTimeAsync(0)
@@ -50,12 +50,8 @@ describe('app store', () => {
     expect(s.accounts.map((a) => a.id)).toEqual(['black'])
     expect(sessionStorage.getItem('monotrat.token')).toBe('secret')
     expect(localStorage.getItem('monotrat.token')).toBeNull()
-    expect(s.progress.state).toBe('waiting')
-    expect(getStatement).not.toHaveBeenCalled()
-
-    await vi.advanceTimersByTimeAsync(61_000)
     expect(getStatement).toHaveBeenCalledTimes(1)
-    expect(app.getState().txs).toHaveLength(1)
+    await vi.waitFor(() => expect(app.getState().txs).toHaveLength(1))
     expect(app.getState().available).toEqual(['2026-09'])
     await app.actions.logout()
   })

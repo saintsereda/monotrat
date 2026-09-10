@@ -98,6 +98,41 @@ describe('normalizeAll', () => {
     expect(one(tx({ accountId: 'black', amount: -50000, mcc: 4829, description: 'Платіжка' })).category).toBe('transfers')
   })
 
+  it('cancels a purchase that was fully refunded (e.g. a released hold)', () => {
+    const [buy, back] = normalizeAll([
+      tx({ accountId: 'black', amount: -250000, mcc: 7011, time: 1000, description: 'Hotel Lviv', cashbackAmount: 2500 }),
+      tx({ accountId: 'black', amount: 250000, mcc: 7011, time: 90000, description: 'Hotel Lviv' }),
+    ], { accounts, rates })
+    expect(buy).toMatchObject({ kind: 'reversed', cashbackUah: 0 })
+    expect(back.kind).toBe('reversed')
+  })
+
+  it('nets a partial refund against the purchase', () => {
+    const [buy, back] = normalizeAll([
+      tx({ accountId: 'black', amount: -100000, mcc: 5651, time: 1000, description: 'ZARA' }),
+      tx({ accountId: 'black', amount: 40000, mcc: 5651, time: 5000, description: 'ZARA' }),
+    ], { accounts, rates })
+    expect(buy).toMatchObject({ kind: 'expense', amountUah: -60000 })
+    expect(back.kind).toBe('reversed')
+  })
+
+  it('matches a refund by MCC and amount when the description differs', () => {
+    const [buy, back] = normalizeAll([
+      tx({ accountId: 'black', amount: -49900, mcc: 5818, time: 1000, description: 'APPLE.COM/BILL' }),
+      tx({ accountId: 'black', amount: 49900, mcc: 5818, time: 2000, description: 'Повернення APPLE' }),
+    ], { accounts, rates })
+    expect([buy.kind, back.kind]).toEqual(['reversed', 'reversed'])
+  })
+
+  it('keeps a refund without an earlier matching purchase as a refund', () => {
+    const [back, buy] = normalizeAll([
+      tx({ accountId: 'black', amount: 50000, mcc: 5651, time: 1000, description: 'ZARA' }),
+      tx({ accountId: 'black', amount: -50000, mcc: 5651, time: 2000, description: 'ZARA' }),
+    ], { accounts, rates })
+    expect(back.kind).toBe('refund')
+    expect(buy.kind).toBe('expense')
+  })
+
   it('sorts by time ascending', () => {
     const out = normalizeAll([
       tx({ accountId: 'black', amount: -1, time: 30 }),

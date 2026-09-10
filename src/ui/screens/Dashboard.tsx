@@ -4,6 +4,7 @@ import { monthKey, parseMonth } from '../../analytics/time'
 import type { AppState } from '../../state/appStore'
 import { actions, useDashboard } from '../../state/useApp'
 import { ErrorBoundary } from '../components/Bits'
+import { useWakeLock } from '../useWakeLock'
 import { AnomaliesSection } from '../sections/AnomaliesSection'
 import { CalendarSection } from '../sections/CalendarSection'
 import { CashflowSection } from '../sections/CashflowSection'
@@ -39,6 +40,9 @@ function MonthPicker({ months, value, currentYear }: { months: string[]; value: 
 
 export function Dashboard({ state }: { state: AppState }) {
   const data = useDashboard(state)
+  const { state: sync } = state.progress
+  const syncing = state.mode === 'live' && (sync === 'waiting' || sync === 'fetching' || sync === 'rateLimited')
+  useWakeLock(syncing)
   const current = monthKey(state.now)
   const months = useMemo(() => [...new Set([current, ...state.available])].sort().reverse(), [current, state.available])
   const { year } = parseMonth(state.selectedMonth)
@@ -53,6 +57,11 @@ export function Dashboard({ state }: { state: AppState }) {
             <button type="button" onClick={() => void actions.logout()} className="rounded-full bg-white px-4 py-2 text-[13px] font-semibold text-black transition-colors hover:bg-mint">
               Підключити свій monobank
             </button>
+          </div>
+        ) : null}
+        {syncing ? (
+          <div className="mt-6 rounded-[28px] bg-white px-5 py-4 text-[13px] leading-snug font-semibold text-black/70 shadow-[0_0_0_1px_rgba(0,0,0,0.06)]">
+            ⏳ Довантажуємо історію з monobank. Тримайте вкладку відкритою: у фоні чи із заблокованим екраном (особливо на iPhone) браузер ставить завантаження на паузу.
           </div>
         ) : null}
         {!state.persistent ? (

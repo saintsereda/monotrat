@@ -51,9 +51,9 @@ describe('accountsFromClientInfo', () => {
       jars: [{ id: 'j', title: 'Відпустка', currencyCode: 980, balance: 300 }],
     }
     expect(accountsFromClientInfo(info)).toEqual([
-      { id: 'b', kind: 'card', title: 'Чорна картка', currencyCode: 980, iban: 'UA1', balance: 100 },
-      { id: 'u', kind: 'card', title: 'Біла картка · USD', currencyCode: 840, iban: undefined, balance: 5 },
-      { id: 'f', kind: 'fop', title: 'ФОП', currencyCode: 980, iban: 'UA2', balance: 0 },
+      { id: 'b', kind: 'card', type: 'black', title: 'Чорна картка', currencyCode: 980, iban: 'UA1', balance: 100 },
+      { id: 'u', kind: 'card', type: 'white', title: 'Біла картка · USD', currencyCode: 840, iban: undefined, balance: 5 },
+      { id: 'f', kind: 'fop', type: 'fop', title: 'ФОП', currencyCode: 980, iban: 'UA2', balance: 0 },
       { id: 'j', kind: 'jar', title: 'Відпустка', currencyCode: 980, balance: 300 },
     ])
   })

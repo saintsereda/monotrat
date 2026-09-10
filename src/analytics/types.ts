@@ -9,6 +9,8 @@ export type AccountKind = 'card' | 'fop' | 'jar'
 export interface Account {
   id: string
   kind: AccountKind
+  /** mono account type: black, white, platinum, iron, fop, … (absent for jars) */
+  type?: string
   title: string
   currencyCode: number
   iban?: string
@@ -16,7 +18,8 @@ export interface Account {
   balance: number
 }
 
-export type TxKind = 'expense' | 'refund' | 'income' | 'internal' | 'cashbackPayout'
+/** `reversed` = a purchase cancelled by a refund (or the refund that cancelled it) — ignored by all stats */
+export type TxKind = 'expense' | 'refund' | 'income' | 'internal' | 'cashbackPayout' | 'reversed'
 
 export interface NormalizedTx {
   id: string

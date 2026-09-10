@@ -79,6 +79,7 @@ export function accountsFromClientInfo(info: MonoClientInfo): Account[] {
   const accounts: Account[] = info.accounts.map((a) => ({
     id: a.id,
     kind: a.type === 'fop' ? 'fop' : 'card',
+    type: a.type,
     title: `${CARD_TITLES[a.type] ?? 'Рахунок'}${a.currencyCode === 980 ? '' : ` · ${currencyName(a.currencyCode)}`}`,
     currencyCode: a.currencyCode,
     iban: a.iban,

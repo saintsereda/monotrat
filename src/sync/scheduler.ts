@@ -7,8 +7,19 @@ import { HISTORY_MONTHS, type SyncJob, buildQueue } from './plan'
 export const REQUEST_INTERVAL_MS = 61_000
 export const RATE_LIMIT_BACKOFF_MS = 65_000
 export const MAX_ATTEMPTS = 3
+/** delay before trying a second account to find out whether the limit is per account */
+export const PROBE_GAP_MS = 3_000
+/** minimal gap between any two requests once the limit is known to be per account */
+export const MIN_GAP_MS = 1_000
 
 export type SyncState = 'idle' | 'waiting' | 'fetching' | 'rateLimited' | 'done' | 'unauthorized' | 'stopped'
+
+/**
+ * monobank documents "1 request per 60 s" without saying whether it is per token or per account.
+ * We start `unknown`, probe a second account a few seconds after the first request and switch to
+ * `perAccount` (every account on its own 61 s timer) or `global` (one request per 61 s) accordingly.
+ */
+export type LimitMode = 'unknown' | 'perAccount' | 'global'
 
 export interface SyncProgress {
   state: SyncState
@@ -18,10 +29,11 @@ export interface SyncProgress {
   /** ms timestamp of the next request, when waiting */
   nextRequestAt: number | null
   currentMonth: string | null
+  limitMode: LimitMode
 }
 
 export const INITIAL_PROGRESS: SyncProgress = {
-  state: 'idle', done: 0, total: 0, failed: 0, nextRequestAt: null, currentMonth: null,
+  state: 'idle', done: 0, total: 0, failed: 0, nextRequestAt: null, currentMonth: null, limitMode: 'unknown',
 }
 
 export interface SchedulerOptions {
@@ -29,8 +41,6 @@ export interface SchedulerOptions {
   store: Store
   accounts: Account[]
   months?: number
-  /** ms timestamp of the last request made with this token (e.g. client-info) */
-  lastRequestAt?: number
   now?: () => number
   onProgress?: (progress: SyncProgress) => void
   onData?: () => void
@@ -45,7 +55,9 @@ class StoppedError extends Error {}
 
 export function createSyncScheduler(opts: SchedulerOptions): SyncScheduler {
   const now = opts.now ?? (() => Date.now())
-  let lastRequestAt = opts.lastRequestAt ?? null
+  let lastRequestAt: number | null = null
+  const lastByAccount = new Map<string, number>()
+  let limitMode: LimitMode = 'unknown'
   let stopped = false
   const timers = new Set<{ timer: ReturnType<typeof setTimeout>; reject: (e: Error) => void }>()
   let progress: SyncProgress = { ...INITIAL_PROGRESS }
@@ -53,6 +65,11 @@ export function createSyncScheduler(opts: SchedulerOptions): SyncScheduler {
   const emit = (patch: Partial<SyncProgress>) => {
     progress = { ...progress, ...patch }
     opts.onProgress?.(progress)
+  }
+
+  const setLimitMode = (mode: LimitMode) => {
+    limitMode = mode
+    emit({ limitMode: mode })
   }
 
   const sleep = (ms: number) =>
@@ -73,20 +90,35 @@ export function createSyncScheduler(opts: SchedulerOptions): SyncScheduler {
     if (stopped) throw new StoppedError()
   }
 
+  function waitMsFor(accountId: string): number {
+    if (lastRequestAt === null) return 0
+    const t = now()
+    const own = lastByAccount.get(accountId)
+    const accountWait = own === undefined ? 0 : own + REQUEST_INTERVAL_MS - t
+    if (limitMode === 'global') return Math.max(0, lastRequestAt + REQUEST_INTERVAL_MS - t)
+    if (limitMode === 'perAccount') return Math.max(0, accountWait, lastRequestAt + MIN_GAP_MS - t)
+    return Math.max(0, accountWait, lastRequestAt + PROBE_GAP_MS - t)
+  }
+
   async function throttledStatement(accountId: string, from: number, to: number) {
     for (;;) {
-      const waitMs = lastRequestAt === null ? 0 : lastRequestAt + REQUEST_INTERVAL_MS - now()
+      const waitMs = waitMsFor(accountId)
       if (waitMs > 0) {
         emit({ state: 'waiting', nextRequestAt: now() + waitMs })
         await sleep(waitMs)
       }
       checkStopped()
+      const probing = limitMode === 'unknown' && lastRequestAt !== null && now() - lastRequestAt < REQUEST_INTERVAL_MS
       emit({ state: 'fetching', nextRequestAt: null })
       lastRequestAt = now()
+      lastByAccount.set(accountId, lastRequestAt)
       try {
-        return await opts.client.getStatement(accountId, from, to)
+        const page = await opts.client.getStatement(accountId, from, to)
+        if (probing) setLimitMode('perAccount')
+        return page
       } catch (error) {
         if (error instanceof MonoApiError && error.status === 429) {
+          if (limitMode !== 'global') setLimitMode('global')
           emit({ state: 'rateLimited', nextRequestAt: now() + RATE_LIMIT_BACKOFF_MS })
           await sleep(RATE_LIMIT_BACKOFF_MS)
           continue
