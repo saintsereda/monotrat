@@ -67,6 +67,10 @@ export function monthName(key: string): string {
   return MONTHS_NOM[parseMonth(key).month - 1]
 }
 
+export function monthGenitive(key: string): string {
+  return MONTHS_GEN[parseMonth(key).month - 1]
+}
+
 export function monthLocative(key: string): string {
   return MONTHS_LOC[parseMonth(key).month - 1]
 }

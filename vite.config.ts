@@ -4,6 +4,8 @@ import tailwindcss from '@tailwindcss/vite'
 import { defineConfig } from 'vite'
 
 export default defineConfig({
+  // relative asset paths work both on GitHub Pages (/monotrat/) and at a domain root
+  base: './',
   plugins: [react(), tailwindcss()],
   test: {
     environment: 'jsdom',
