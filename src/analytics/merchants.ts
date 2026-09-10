@@ -1,3 +1,4 @@
+import { isExpense } from './filters'
 import { mostFrequent } from './stats'
 import { DAY, addMonths, monthEnd, monthStart } from './time'
 import type { AnalyticsContext, CategoryId, NormalizedTx } from './types'
@@ -14,8 +15,7 @@ export interface MerchantStat {
   isNew: boolean
 }
 
-const EXCLUDED: ReadonlySet<CategoryId> = new Set<CategoryId>(['transfers', 'cash'])
-
+/** Every expense that counts as spending belongs to some merchant — same rule as the rest of the dashboard. */
 export function merchantStats(txs: NormalizedTx[], ctx: AnalyticsContext): MerchantStat[] {
   const start = monthStart(ctx.month)
   const end = monthEnd(ctx.month)
@@ -23,7 +23,7 @@ export function merchantStats(txs: NormalizedTx[], ctx: AnalyticsContext): Merch
   const inMonth = new Map<string, NormalizedTx[]>()
 
   for (const t of txs) {
-    if (t.kind !== 'expense' || EXCLUDED.has(t.category)) continue
+    if (!isExpense(t, ctx.includeTransfers)) continue
     const h = history.get(t.merchantKey)
     if (h) {
       h.first = Math.min(h.first, t.time)

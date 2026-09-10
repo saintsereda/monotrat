@@ -74,7 +74,7 @@ export function buildInsights({ txs, ctx, merchants, recurring, biggest }: Insig
   const loyalMonths = new Map<string, Set<string>>()
   const loyalLabels = new Map<string, string>()
   for (const t of txs) {
-    if (t.kind !== 'expense' || t.category === 'transfers' || t.category === 'cash') continue
+    if (!isExpense(t, ctx.includeTransfers)) continue
     const set = loyalMonths.get(t.merchantKey) ?? new Set<string>()
     set.add(monthKey(t.time))
     loyalMonths.set(t.merchantKey, set)

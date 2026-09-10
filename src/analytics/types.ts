@@ -2,7 +2,7 @@ export type CategoryId =
   | 'groceries' | 'cafe' | 'taxi' | 'travel' | 'entertainment' | 'cinema' | 'digital'
   | 'health' | 'utilities' | 'mobile' | 'auto' | 'clothes' | 'home' | 'electronics'
   | 'shopping' | 'pets' | 'education' | 'books' | 'taxes' | 'finance' | 'cash'
-  | 'transfers' | 'donations' | 'dutyfree' | 'other'
+  | 'transfers' | 'payments' | 'donations' | 'dutyfree' | 'other'
 
 export type AccountKind = 'card' | 'fop' | 'jar'
 

@@ -32,6 +32,7 @@ export const CATEGORIES: Record<CategoryId, CategoryMeta> = {
   finance: meta('finance', 'Фінанси та страхування', '🏦', '#5eead4'),
   cash: meta('cash', 'Готівка', '💵', '#7cff6b'),
   transfers: meta('transfers', 'Перекази', '↗️', '#6dc106'),
+  payments: meta('payments', 'Платежі й послуги', '🧾', '#f59e0b'),
   donations: meta('donations', 'Донати', '💙', '#3b82f6'),
   dutyfree: meta('dutyfree', 'Duty Free', '🧳', '#fcd34d'),
   other: meta('other', 'Інше', '•', '#8b8b8b'),

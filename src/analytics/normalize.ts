@@ -60,6 +60,9 @@ interface Draft {
   counterKind?: AccountKind
 }
 
+/** mono books service payments ("Платіж …", "Щомісячний платіж …") with the same MCC 4829 as transfers to people */
+const SERVICE_PAYMENT_RE = /^(щомісячний\s+)?(платіж|оплата)(?!\p{L})/iu
+
 function pairInternal(drafts: Draft[]): void {
   for (let i = 0; i < drafts.length; i++) {
     const out = drafts[i]
@@ -119,7 +122,8 @@ export function normalizeAll(items: StoredTx[], ctx: NormalizeContext): Normaliz
     if (!kind && d.amountUah > 0 && CASHBACK_RE.test(description)) kind = 'cashbackPayout'
     if (!kind && d.amountUah <= 0) {
       kind = 'expense'
-      if (category === 'transfers' && JAR_WORD_RE.test(description)) category = 'donations'
+      if (category === 'transfers' && SERVICE_PAYMENT_RE.test(description)) category = 'payments'
+      else if (category === 'transfers' && JAR_WORD_RE.test(description)) category = 'donations'
     }
     if (!kind) kind = NON_MERCHANT_CATEGORIES.has(category) ? 'income' : 'refund'
 

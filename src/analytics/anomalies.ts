@@ -1,14 +1,10 @@
 import type { CategoryShare } from './breakdown'
-import { isSpending, spendOf } from './filters'
+import { isExpense, isSpending, spendOf } from './filters'
 import { median, quantile } from './stats'
 import { DAY, dayKey, daysInMonth, monthEnd, monthKey, monthStart } from './time'
 import type { AnalyticsContext, CategoryId, NormalizedTx } from './types'
 
-/** Categories that are not "purchases": people, ATMs, banks, the state. */
-export const NOT_PURCHASES: ReadonlySet<CategoryId> = new Set<CategoryId>(['transfers', 'cash', 'finance', 'taxes'])
 const MIN_UNUSUAL = 50000
-
-const isPurchase = (t: NormalizedTx) => t.kind === 'expense' && !NOT_PURCHASES.has(t.category)
 
 export interface UnusualTx {
   tx: NormalizedTx
@@ -21,7 +17,7 @@ export function unusualTransactions(txs: NormalizedTx[], ctx: AnalyticsContext, 
   const byMerchant = new Map<string, number[]>()
   const byCategory = new Map<CategoryId, number[]>()
   for (const t of txs) {
-    if (!isPurchase(t)) continue
+    if (!isExpense(t, ctx.includeTransfers)) continue
     const m = byMerchant.get(t.merchantKey)
     if (m) m.push(-t.amountUah)
     else byMerchant.set(t.merchantKey, [-t.amountUah])
@@ -34,7 +30,7 @@ export function unusualTransactions(txs: NormalizedTx[], ctx: AnalyticsContext, 
   const end = monthEnd(ctx.month)
   const out: UnusualTx[] = []
   for (const t of txs) {
-    if (t.time < start || t.time >= end || !isPurchase(t)) continue
+    if (t.time < start || t.time >= end || !isExpense(t, ctx.includeTransfers)) continue
     const amount = -t.amountUah
     if (amount < MIN_UNUSUAL) continue
     const merchant = byMerchant.get(t.merchantKey) ?? []
@@ -113,7 +109,7 @@ export function biggestPurchases(txs: NormalizedTx[], ctx: AnalyticsContext, n =
   const start = monthStart(ctx.month)
   const end = monthEnd(ctx.month)
   return txs
-    .filter((t) => t.time >= start && t.time < end && isPurchase(t))
+    .filter((t) => t.time >= start && t.time < end && isExpense(t, ctx.includeTransfers))
     .sort((a, b) => a.amountUah - b.amountUah)
     .slice(0, n)
 }

@@ -90,6 +90,14 @@ describe('normalizeAll', () => {
     expect(one(tx({ accountId: 'black', amount: -20000, mcc: 4829, description: 'Банка «На FPV»' }))).toMatchObject({ kind: 'expense', category: 'donations' })
   })
 
+  it('separates payments for services from transfers to people', () => {
+    expect(one(tx({ accountId: 'black', amount: -480000, mcc: 4829, description: 'Платіж Зелена картка' }))).toMatchObject({ kind: 'expense', category: 'payments' })
+    expect(one(tx({ accountId: 'black', amount: -40800, mcc: 4829, description: 'Щомісячний платіж MOYO- monomarket' }))).toMatchObject({ kind: 'expense', category: 'payments' })
+    expect(one(tx({ accountId: 'black', amount: -50000, mcc: 4829, description: 'Оплата послуг' })).category).toBe('payments')
+    expect(one(tx({ accountId: 'black', amount: -50000, mcc: 4829, description: 'Олена К.' })).category).toBe('transfers')
+    expect(one(tx({ accountId: 'black', amount: -50000, mcc: 4829, description: 'Платіжка' })).category).toBe('transfers')
+  })
+
   it('sorts by time ascending', () => {
     const out = normalizeAll([
       tx({ accountId: 'black', amount: -1, time: 30 }),

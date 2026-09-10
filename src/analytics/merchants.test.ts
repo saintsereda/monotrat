@@ -12,10 +12,10 @@ const txs = [
   mk({ amountUah: -20000, time: at(2026, 9, 12), description: 'Lviv Croissants', category: 'cafe' }),
   mk({ amountUah: -1800000, time: at(2026, 9, 1), description: 'Олена К.', category: 'transfers' }),
 ]
-const c = ctx('2026-09', NOW, ['2026-09', '2026-08'])
+const c = ctx('2026-09', NOW, ['2026-09', '2026-08'], false)
 
 describe('merchants', () => {
-  it('aggregates merchant spend for the month, skipping transfers', () => {
+  it('aggregates merchant spend for the month, skipping transfers when they are excluded', () => {
     const stats = merchantStats(txs, c)
     expect(stats.map((s) => [s.key, s.amount, s.count, s.isNew])).toEqual([
       ['glovo', 50000, 1, false],
@@ -26,6 +26,11 @@ describe('merchants', () => {
     expect(atbStat).toMatchObject({ label: 'АТБ', category: 'groceries', avgCheck: 10000 })
     expect(atbStat?.everyDays).toBeCloseTo(7.8, 5)
     expect(stats.find((s) => s.key === 'glovo')?.everyDays).toBeNull()
+  })
+
+  it('includes transfers to people when they count as spending', () => {
+    const stats = merchantStats(txs, ctx('2026-09', NOW, ['2026-09', '2026-08'], true))
+    expect(stats[0]).toMatchObject({ key: 'олена к.', amount: 1800000, category: 'transfers' })
   })
 
   it('ranks by amount or count and lists new merchants', () => {
@@ -43,6 +48,6 @@ describe('merchants', () => {
   })
 
   it('does not mark merchants as new without previous-month history', () => {
-    expect(newMerchants(merchantStats(txs, ctx('2026-09', NOW, ['2026-09'])))).toEqual([])
+    expect(newMerchants(merchantStats(txs, ctx('2026-09', NOW, ['2026-09'], false)))).toEqual([])
   })
 })
