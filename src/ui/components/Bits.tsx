@@ -22,7 +22,7 @@ export function Delta({ ratio, upIsGood = false, suffix }: { ratio: number | nul
   const tone = flat ? 'text-white/50' : up === upIsGood ? 'text-green' : 'text-red'
   return (
     <span className={tone}>
-      {flat ? '=' : up ? '▲' : '▼'} {formatDelta(Math.abs(ratio))}
+      {flat ? '=' : up ? '▲' : '▼'} {formatDelta(Math.abs(ratio)).replace('+', '')}
       {suffix ? <span className="text-white/45"> {suffix}</span> : null}
     </span>
   )
