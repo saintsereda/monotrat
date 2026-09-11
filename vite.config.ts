@@ -5,8 +5,9 @@ import { type Plugin, defineConfig } from 'vite'
 
 const CSP = [
   "default-src 'self'",
-  "connect-src 'self' https://api.monobank.ua",
-  "img-src 'self' data:",
+  // Brandfetch: logo lookup by merchant name for brands missing from public/logos
+  "connect-src 'self' https://api.monobank.ua https://api.brandfetch.io",
+  "img-src 'self' data: https://cdn.brandfetch.io",
   "style-src 'self' 'unsafe-inline'",
   "font-src 'self' data:",
   "script-src 'self'",

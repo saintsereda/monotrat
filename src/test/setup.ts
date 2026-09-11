@@ -29,3 +29,8 @@ for (const name of ['localStorage', 'sessionStorage'] as const) {
     Object.defineProperty(globalThis, name, { value: new MemoryStorage(), configurable: true, writable: true })
   }
 }
+
+// Tests never touch the network: clients get fakes injected, merchant logo lookups fall back to categories.
+globalThis.fetch = async () => {
+  throw new TypeError('network is disabled in tests')
+}

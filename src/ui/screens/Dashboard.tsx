@@ -73,7 +73,7 @@ export function Dashboard({ state }: { state: AppState }) {
         <div className="pt-10 sm:pt-14">
           <h1 className="text-[34px] font-bold tracking-tight sm:text-[44px]">Дашборд</h1>
           <p className="mt-3 max-w-xl text-[15px] leading-snug font-semibold">
-            Ваші гроші у {monthLocative(state.selectedMonth)} {year} — усе рахується просто в браузері й нікуди не відправляється.
+            Ваші гроші у {monthLocative(state.selectedMonth)} {year} — усе рахується просто у вашому браузері.
           </p>
         </div>
         <MonthPicker months={months} value={state.selectedMonth} currentYear={parseMonth(current).year} />

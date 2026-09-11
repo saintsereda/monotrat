@@ -27,7 +27,7 @@ export function Footer() {
     <footer className="mx-auto max-w-[1160px] px-4 pb-10 sm:px-6">
       <div className="flex flex-col gap-2 border-t border-black/10 pt-6 text-[13px] text-black/50 sm:flex-row sm:justify-between">
         <span>Неофіційний проєкт, не пов'язаний з monobank.</span>
-        <span>Токен і транзакції не залишають ваш браузер.</span>
+        <span>Токен і транзакції зберігаються тільки у вашому браузері.</span>
       </div>
     </footer>
   )

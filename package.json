@@ -9,7 +9,8 @@
     "lint": "oxlint",
     "preview": "vite preview",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "logos": "node scripts/fetch-logos.ts"
   },
   "dependencies": {
     "@fontsource/geologica": "^5.3.0",
@@ -31,6 +32,7 @@
     "fake-indexeddb": "^6.2.5",
     "jsdom": "^29.1.1",
     "oxlint": "^1.81.0",
+    "sharp": "^0.35.4",
     "tailwindcss": "^4.3.3",
     "typescript": "~6.0.2",
     "vite": "^8.3.0",

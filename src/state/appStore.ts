@@ -4,6 +4,7 @@ import { type RateTable, buildRateTable, normalizeAll } from '../analytics/norma
 import { monthKey, recentMonths } from '../analytics/time'
 import type { Account, NormalizedTx } from '../analytics/types'
 import { DEMO_MONTHS, generateDemo } from '../demo/generate'
+import { logoResolver } from '../logos/search'
 import type { CoverageEntry, Store } from '../store/types'
 import { INITIAL_PROGRESS, type SyncProgress, type SyncScheduler, createSyncScheduler } from '../sync/scheduler'
 import { clearToken, loadToken, saveToken } from './token'
@@ -229,6 +230,7 @@ export function createAppStore(deps: AppDeps) {
       scheduler = null
       client = null
       clearToken()
+      logoResolver().clear()
       set({ phase: 'onboarding', mode: null, accounts: [], txs: [], available: [], progress: INITIAL_PROGRESS, error: null })
       if (wasLive) await (await getStore()).clear()
     },

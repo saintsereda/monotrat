@@ -1,4 +1,3 @@
-import { CATEGORIES } from '../../analytics/categories'
 import type { DashboardData } from '../../analytics/dashboard'
 import { dayLabel, formatCompact, formatUah, formatUahExact } from '../../analytics/format'
 import type { Cadence } from '../../analytics/recurring'
@@ -23,7 +22,7 @@ export function RecurringSection({ data }: { data: DashboardData }) {
             <ul className="divide-y divide-white/[0.07]">
               {items.map((r) => (
                 <li key={r.merchantKey} className="flex items-center gap-3 py-3 first:pt-0 last:pb-0">
-                  <Avatar label={r.label} color={CATEGORIES[r.category].color} size={34} />
+                  <Avatar label={r.label} category={r.category} size={34} />
                   <span className="min-w-0 flex-1">
                     <span className="flex items-center gap-2">
                       <span className="truncate text-[14px] font-semibold">{r.label}</span>

@@ -1,15 +1,54 @@
-import { Component, type ReactNode } from 'react'
+import { Component, type ReactNode, useState } from 'react'
+import { CATEGORIES } from '../../analytics/categories'
 import { formatDelta } from '../../analytics/format'
+import type { CategoryId } from '../../analytics/types'
+import { useMerchantLogos } from '../../logos/useMerchantLogo'
+import { withAlpha } from '../color'
 
-export function Avatar({ label, color, size = 28 }: { label: string; color: string; size?: number }) {
-  const letter = (label.trim().match(/[\p{L}\p{N}]/u)?.[0] ?? '•').toUpperCase()
+/** Merchant logo; without one — the category icon, or the first letter for uncategorised merchants. */
+export function Avatar({ label, category, size = 28 }: { label: string; category: CategoryId; size?: number }) {
+  const sources = useMerchantLogos(label, category)
+  const [failed, setFailed] = useState<readonly string[]>([])
+  const logo = sources.find((src) => !failed.includes(src))
+  const meta = CATEGORIES[category]
+  const box = { width: size, height: size }
+
+  if (logo) {
+    return (
+      <img
+        src={logo}
+        alt=""
+        aria-hidden
+        width={size}
+        height={size}
+        loading="lazy"
+        decoding="async"
+        referrerPolicy="no-referrer"
+        onError={() => setFailed((list) => [...list, logo])}
+        className="shrink-0 rounded-full bg-white object-cover"
+        style={box}
+      />
+    )
+  }
+  if (category === 'other') {
+    const letter = (label.trim().match(/[\p{L}\p{N}]/u)?.[0] ?? '•').toUpperCase()
+    return (
+      <span
+        aria-hidden
+        className="grid shrink-0 place-items-center rounded-full font-bold text-black"
+        style={{ ...box, background: meta.color, fontSize: Math.round(size * 0.42) }}
+      >
+        {letter}
+      </span>
+    )
+  }
   return (
     <span
       aria-hidden
-      className="grid shrink-0 place-items-center rounded-full font-bold text-black"
-      style={{ width: size, height: size, background: color, fontSize: Math.round(size * 0.42) }}
+      className="grid shrink-0 place-items-center rounded-full"
+      style={{ ...box, background: withAlpha(meta.color, 0.2), fontSize: Math.round(size * 0.5) }}
     >
-      {letter}
+      {meta.emoji}
     </span>
   )
 }

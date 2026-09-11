@@ -11,7 +11,7 @@ function MerchantRow({ n, m, value }: { n: number; m: MerchantStat; value: strin
   return (
     <li className="flex items-center gap-3 py-[7px]">
       <Rank n={n} />
-      <Avatar label={m.label} color={CATEGORIES[m.category].color} size={24} />
+      <Avatar label={m.label} category={m.category} size={24} />
       <span className="min-w-0 flex-1 truncate text-[13px] font-semibold">{m.label}</span>
       <span className="num shrink-0 text-[13px]">{value}</span>
     </li>
@@ -90,7 +90,7 @@ export function MerchantsSection({ data }: { data: DashboardData }) {
             <div className="flex flex-wrap gap-2">
               {data.newMerchants.slice(0, 12).map((m) => (
                 <span key={m.key} className="inline-flex items-center gap-2 rounded-full bg-icon py-1.5 pr-3 pl-1.5 text-[12px] font-semibold">
-                  <Avatar label={m.label} color={CATEGORIES[m.category].color} size={22} />
+                  <Avatar label={m.label} category={m.category} size={22} />
                   {m.label}
                   <span className="num text-white/45">{formatUah(m.amount)}</span>
                 </span>
@@ -108,7 +108,7 @@ export function MerchantsSection({ data }: { data: DashboardData }) {
                 const days = Math.max(1, Math.round(m.everyDays ?? 1))
                 return (
                   <li key={m.key} className="flex items-center gap-3 py-[7px]">
-                    <Avatar label={m.label} color={CATEGORIES[m.category].color} size={24} />
+                    <Avatar label={m.label} category={m.category} size={24} />
                     <span className="min-w-0 flex-1 truncate text-[13px] font-semibold">{m.label}</span>
                     <span className="text-[12px] text-white/55">раз на {days} {plural(days, ['день', 'дні', 'днів'])}</span>
                     <span className="num w-[84px] shrink-0 text-right text-[13px]">~{formatUah(m.avgCheck)}</span>

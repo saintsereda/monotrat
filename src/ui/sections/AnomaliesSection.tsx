@@ -31,7 +31,7 @@ export function AnomaliesSection({ data }: { data: DashboardData }) {
               ))}
               {data.unusualTxs.map((u) => (
                 <li key={u.tx.id} className="flex gap-3">
-                  <Avatar label={u.tx.description} color={CATEGORIES[u.tx.category].color} size={36} />
+                  <Avatar label={u.tx.description} category={u.tx.category} size={36} />
                   <span className="min-w-0 flex-1 text-[13px] leading-snug">
                     <span className="block truncate font-semibold">{u.tx.description}</span>
                     <span className="text-white/55">
@@ -61,7 +61,7 @@ export function AnomaliesSection({ data }: { data: DashboardData }) {
               {data.biggest.map((t, i) => (
                 <li key={t.id} className="flex items-center gap-3 py-[7px]">
                   <Rank n={i + 1} />
-                  <Avatar label={t.description} color={CATEGORIES[t.category].color} size={24} />
+                  <Avatar label={t.description} category={t.category} size={24} />
                   <span className="min-w-0 flex-1 truncate text-[13px] font-semibold">{t.description}</span>
                   <span className="hidden text-[12px] text-white/40 sm:inline">{dayLabel(dayKey(t.time))}</span>
                   <span className="num w-[92px] shrink-0 text-right text-[13px]">{formatUah(-t.amountUah)}</span>

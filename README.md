@@ -20,6 +20,7 @@
 - Токен лише читає виписку. За замовчуванням живе тільки у вкладці (`sessionStorage`), з галочкою «Запам'ятати» — у `localStorage`.
 - Транзакції кешуються в IndexedDB вашого браузера. «Вийти і стерти дані» видаляє все.
 - Жодної аналітики, трекерів чи сторонніх скриптів; шрифти self-hosted; суворий CSP.
+- Лого ~140 популярних брендів (АТБ, Сільпо, Нова пошта, OKKO…) лежать у самому сайті (`public/logos`). Для решти мерчантів сайт шукає лого в [Brandfetch](https://brandfetch.com) — туди йде лише назва магазину, без сум і токена.
 
 ## Як це працює
 
@@ -32,6 +33,7 @@ npm install
 npm run dev      # http://localhost:5173 (демо: /?demo)
 npm test         # Vitest
 npm run build    # статичні файли в dist/
+npm run logos    # докачати лого для нових брендів із src/logos/brands.ts
 ```
 
 Стек: Vite, React 19, TypeScript, Tailwind CSS 4, Vitest, `idb`, `d3-shape`. Деплой — GitHub Pages через Actions на кожен пуш у `main`.
